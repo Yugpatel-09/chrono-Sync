@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChronoSync - Frictionless Timezones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <!-- Animated Star Background -->
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>
+
+    <div class="app-layout">
+      <!-- Sidebar matching Stardance aesthetic -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#FADB5F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 6V12L16 14" stroke="#FADB5F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <h2>ChronoSync</h2>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#" class="nav-item active" data-target="view-dashboard">
+            <span class="nav-icon">🚀</span>
+            <span class="nav-text">Dashboard</span>
+          </a>
+          <a href="#" class="nav-item" data-target="view-team">
+            <span class="nav-icon">🌍</span>
+            <span class="nav-text">Global Team</span>
+          </a>
+          <a href="#" class="nav-item" data-target="view-settings">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-text">Settings</span>
+          </a>
+        </nav>
+        
+        <div class="sidebar-user">
+          <div class="user-avatar"></div>
+          <div class="user-info">
+            <p class="user-name">@Hacker</p>
+            <p class="user-stardust">300 Stardust</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        
+        <!-- View 1: Dashboard -->
+        <section id="view-dashboard" class="view-section active animate-fade-in-up">
+          <header class="header">
+            <div class="header-title">
+              <span class="badge badge-progress">🟢 In Sync</span>
+              <span class="badge badge-level">Frictionless</span>
+              <h1 class="page-title serif-italic">Global Timeline</h1>
+              <p class="page-subtitle">Scrub the timeline to instantly sync across all team members. No math required.</p>
+            </div>
+            
+            <div class="header-actions">
+              <button class="btn btn-primary glow-effect open-add-modal">+ Add Member</button>
+              <button class="btn btn-secondary share-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                Share Session
+              </button>
+            </div>
+          </header>
+
+          <div class="timeline-container glass-panel">
+            <div class="timeline-header">
+              <div class="timeline-status">
+                <h2>Master Clock</h2>
+                <button class="btn btn-text reset-time-btn">Reset to Now</button>
+              </div>
+              <span id="global-time-display" class="time-display">12:00 PM</span>
+            </div>
+            
+            <div class="slider-wrapper">
+              <div class="slider-track-bg"></div>
+              <div class="slider-fill" id="slider-fill"></div>
+              <input type="range" id="global-slider" class="time-slider" min="0" max="1439" value="720" step="15" />
+              
+              <div class="slider-marks">
+                <span>00:00</span>
+                <span>06:00</span>
+                <span>12:00</span>
+                <span>18:00</span>
+                <span>24:00</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="team-grid" class="team-grid">
+            <!-- Cards injected by JS -->
+          </div>
+        </section>
+
+        <!-- View 2: Global Team Management -->
+        <section id="view-team" class="view-section hidden">
+          <header class="header">
+            <div class="header-title">
+              <h1 class="page-title">Team Directory</h1>
+              <p class="page-subtitle">Manage your synchronized team members and view detailed timezone offsets.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary glow-effect open-add-modal">+ Add Member</button>
+            </div>
+          </header>
+          
+          <div class="glass-panel" style="padding: 0; overflow: hidden;">
+            <table class="premium-table">
+              <thead>
+                <tr>
+                  <th>Member Name</th>
+                  <th>Timezone Region</th>
+                  <th>Current Offset</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="team-table-body">
+                <!-- Rows injected by JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- View 3: Settings -->
+        <section id="view-settings" class="view-section hidden">
+          <header class="header">
+            <div class="header-title">
+              <h1 class="page-title">Preferences</h1>
+              <p class="page-subtitle">Customize your ChronoSync experience.</p>
+            </div>
+          </header>
+
+          <div class="settings-grid">
+            <div class="setting-card glass-panel">
+              <div class="setting-info">
+                <h3>Time Format</h3>
+                <p>Toggle between 12-hour (AM/PM) and 24-hour clock formats.</p>
+              </div>
+              <div class="setting-control">
+                <label class="switch">
+                  <input type="checkbox" id="setting-24hr">
+                  <span class="slider round"></span>
+                </label>
+                <span class="switch-label">24-Hour Time</span>
+              </div>
+            </div>
+
+            <div class="setting-card glass-panel">
+              <div class="setting-info">
+                <h3>3D Hover Effects</h3>
+                <p>Enable immersive 3D tilt effects on member cards.</p>
+              </div>
+              <div class="setting-control">
+                <label class="switch">
+                  <input type="checkbox" id="setting-3d" checked>
+                  <span class="slider round"></span>
+                </label>
+                <span class="switch-label">Enabled</span>
+              </div>
+            </div>
+
+            <div class="setting-card glass-panel">
+              <div class="setting-info">
+                <h3>Background Animation</h3>
+                <p>Enable moving starfield background.</p>
+              </div>
+              <div class="setting-control">
+                <label class="switch">
+                  <input type="checkbox" id="setting-stars" checked>
+                  <span class="slider round"></span>
+                </label>
+                <span class="switch-label">Enabled</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- Add Person Modal -->
+    <div id="add-modal" class="modal hidden">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h3>Add Team Member</h3>
+          <button id="close-modal" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="person-name">Name</label>
+            <input type="text" id="person-name" placeholder="e.g. Alice" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="person-timezone">Timezone</label>
+            <select id="person-timezone">
+              <!-- Options injected by JS -->
+            </select>
+          </div>
+          <button id="save-person-btn" class="btn btn-primary full-width glow-effect">Add to Sync</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">Copied session link to clipboard!</div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
