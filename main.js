@@ -4,20 +4,17 @@ let globalBaseTime = new Date();
 globalBaseTime.setHours(0, 0, 0, 0);
 
 const DEFAULT_TEAM = [
-  { id: '1', name: 'You (Local)', tz: Intl.DateTimeFormat().resolvedOptions().timeZone },
-  { id: '2', name: 'Tokyo Office', tz: 'Asia/Tokyo' },
-  { id: '3', name: 'London Office', tz: 'Europe/London' }
+  { id: '1', name: 'You (Local) 🤓', tz: Intl.DateTimeFormat().resolvedOptions().timeZone },
+  { id: '2', name: 'Tokyo 🍣', tz: 'Asia/Tokyo' },
+  { id: '3', name: 'London 🌧️', tz: 'Europe/London' }
 ];
 
 let settings = {
-  use24hr: false,
-  enable3D: true,
-  enableStars: true
+  use24hr: false
 };
 
 // DOM Elements
 const globalSlider = document.getElementById('global-slider');
-const sliderFill = document.getElementById('slider-fill');
 const globalTimeDisplay = document.getElementById('global-time-display');
 const teamGrid = document.getElementById('team-grid');
 const addModal = document.getElementById('add-modal');
@@ -26,25 +23,18 @@ const savePersonBtn = document.getElementById('save-person-btn');
 const personNameInput = document.getElementById('person-name');
 const personTimezoneSelect = document.getElementById('person-timezone');
 const toast = document.getElementById('toast');
-const resetBtn = document.querySelector('.reset-time-btn');
+const chaosBtn = document.getElementById('btn-chaos');
 
-// View Elements
 const navItems = document.querySelectorAll('.nav-item');
 const viewSections = document.querySelectorAll('.view-section');
-const teamTableBody = document.getElementById('team-table-body');
-const starContainers = [document.getElementById('stars'), document.getElementById('stars2'), document.getElementById('stars3')];
-
-// Settings Elements
 const setting24hr = document.getElementById('setting-24hr');
-const setting3d = document.getElementById('setting-3d');
-const settingStars = document.getElementById('setting-stars');
 
-// Initialize
+const EMOJIS = ['🚀', '👽', '🍕', '🤠', '👻', '🤖', '👾', '🔥', '✨', '🦦'];
+
+// Initialize App
 function init() {
   populateTimezones();
   loadStateFromURL();
-  generateStars();
-  applySettings();
   
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -54,97 +44,54 @@ function init() {
   setupEventListeners();
 }
 
-// Render Core
+function getRandomEmoji() {
+  return EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+}
+
+// Core Render Loop
 function render() {
   const selectedMinutes = parseInt(globalSlider.value, 10);
-  
-  // Update Slider Visual
-  const percentage = (selectedMinutes / 1439) * 100;
-  sliderFill.style.width = `${percentage}%`;
-
   const selectedTime = new Date(globalBaseTime.getTime() + selectedMinutes * 60000);
+  
   globalTimeDisplay.textContent = formatTime(selectedTime, Intl.DateTimeFormat().resolvedOptions().timeZone).timeStr;
 
-  // Render Dashboard Grid
   teamGrid.innerHTML = '';
-  team.forEach((person, index) => {
-    const card = createPersonCard(person, selectedTime);
-    card.style.animationDelay = `${index * 0.1}s`;
-    card.classList.add('animate-fade-in-up');
-    teamGrid.appendChild(card);
-    if (settings.enable3D) setupTiltEffect(card);
-  });
-
-  // Render Team Table
-  teamTableBody.innerHTML = '';
   team.forEach((person) => {
-    teamTableBody.appendChild(createTableRow(person));
+    const card = document.createElement('div');
+    const { timeStr, ampm, hour24, offsetStr } = formatTime(selectedTime, person.tz);
+    
+    // Assign Day/Evening/Night classes
+    let statusClass = 'status-night';
+    if (hour24 >= 8 && hour24 < 18) statusClass = 'status-day';
+    else if (hour24 >= 18 && hour24 < 23) statusClass = 'status-evening';
+    
+    card.className = `person-card ${statusClass}`;
+    const tzName = person.tz.split('/').pop().replace(/_/g, ' ');
+
+    card.innerHTML = `
+      <div class="person-header">
+        <div class="person-info">
+          <h3>${person.name}</h3>
+          <p>🌎 ${tzName}</p>
+        </div>
+        <button class="delete-btn" onclick="removePerson('${person.id}')">X</button>
+      </div>
+      <div class="person-time">
+        <span class="person-time-value">${timeStr}</span>
+        ${!settings.use24hr ? `<span class="person-time-ampm">${ampm}</span>` : ''}
+        <span class="person-time-diff">${offsetStr}</span>
+      </div>
+    `;
+    teamGrid.appendChild(card);
   });
 
   updateURLState();
 }
 
-function createPersonCard(person, selectedTime) {
-  const { timeStr, ampm, hour24, offsetStr } = formatTime(selectedTime, person.tz);
-  
-  const card = document.createElement('div');
-  card.className = `person-card ${getStatusClass(hour24)}`;
-  const tzName = person.tz.split('/').pop().replace(/_/g, ' ');
-
-  card.innerHTML = `
-    <div class="person-header">
-      <div class="person-info">
-        <h3>${person.name}</h3>
-        <p>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-          ${tzName}
-        </p>
-      </div>
-      <button class="delete-btn" onclick="removePerson('${person.id}')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <div class="person-time">
-      <span class="person-time-value">${timeStr}</span>
-      ${!settings.use24hr ? `<span class="person-time-ampm">${ampm}</span>` : ''}
-      <span class="person-time-diff">${offsetStr}</span>
-    </div>
-  `;
-  return card;
-}
-
-function createTableRow(person) {
-  const row = document.createElement('tr');
-  
-  // Calculate offset relative to local
-  const localFormatter = new Intl.DateTimeFormat('en-US', { timeZoneName: 'longOffset', timeZone: person.tz });
-  const offsetFull = localFormatter.formatToParts(new Date()).find(p => p.type === 'timeZoneName')?.value || '';
-
-  row.innerHTML = `
-    <td>
-      <div class="td-name">${person.name}</div>
-    </td>
-    <td>
-      <div class="td-tz">${person.tz}</div>
-    </td>
-    <td>
-      <span class="td-offset">${offsetFull}</span>
-    </td>
-    <td class="td-actions">
-      <button class="btn delete-btn" onclick="removePerson('${person.id}')">Remove</button>
-    </td>
-  `;
-  return row;
-}
-
+// Time Formatting logic
 function formatTime(date, timeZone) {
   try {
-    const options = { 
-      timeZone, 
-      hour: 'numeric', 
-      minute: '2-digit', 
-      hour12: !settings.use24hr 
-    };
+    const options = { timeZone, hour: 'numeric', minute: '2-digit', hour12: !settings.use24hr };
     const formatter = new Intl.DateTimeFormat('en-US', options);
     const parts = formatter.formatToParts(date);
     
@@ -165,13 +112,7 @@ function formatTime(date, timeZone) {
   }
 }
 
-function getStatusClass(hour24) {
-  if (hour24 >= 8 && hour24 < 18) return 'status-day';    
-  if (hour24 >= 18 && hour24 < 23) return 'status-evening'; 
-  return 'status-night';                                   
-}
-
-// Global Actions
+// Global action for HTML onclick
 window.removePerson = function(id) {
   team = team.filter(p => p.id !== id);
   render();
@@ -192,7 +133,11 @@ function setupEventListeners() {
   });
   
   savePersonBtn.addEventListener('click', () => {
-    const name = personNameInput.value.trim() || 'Team Member';
+    let name = personNameInput.value.trim() || 'Hacker';
+    if (![...name].some(char => char.length > 1)) {
+        // Add random emoji if they didn't include one
+        name += ' ' + getRandomEmoji();
+    }
     const tz = personTimezoneSelect.value;
     team.push({ id: Date.now().toString(), name, tz });
     personNameInput.value = '';
@@ -200,11 +145,16 @@ function setupEventListeners() {
     render();
   });
 
-  if(resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      const now = new Date();
-      globalSlider.value = now.getHours() * 60 + now.getMinutes();
-      render();
+  // Chaos Mode / Time Travel Feature
+  if (chaosBtn) {
+    chaosBtn.addEventListener('click', () => {
+      let loops = 0;
+      const chaosInterval = setInterval(() => {
+        globalSlider.value = Math.floor(Math.random() * 1439);
+        render();
+        loops++;
+        if (loops > 20) clearInterval(chaosInterval);
+      }, 50);
     });
   }
 
@@ -212,98 +162,30 @@ function setupEventListeners() {
     btn.addEventListener('click', () => {
       navigator.clipboard.writeText(window.location.href).then(() => {
         toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 3000);
+        setTimeout(() => toast.classList.add('hidden'), 2000);
       });
     });
   });
 
-  // SPA Navigation
   navItems.forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
       const targetId = item.getAttribute('data-target');
-      
-      // Update Active Nav
       navItems.forEach(n => n.classList.remove('active'));
       item.classList.add('active');
-
-      // Update Active View
       viewSections.forEach(v => {
         v.classList.remove('active');
-        if (v.id === targetId) {
-          v.classList.add('active');
-        }
+        if (v.id === targetId) v.classList.add('active');
       });
     });
   });
 
-  // Settings Toggles
   setting24hr.addEventListener('change', (e) => {
     settings.use24hr = e.target.checked;
     render();
   });
-  setting3d.addEventListener('change', (e) => {
-    settings.enable3D = e.target.checked;
-    render();
-  });
-  settingStars.addEventListener('change', (e) => {
-    settings.enableStars = e.target.checked;
-    applySettings();
-  });
 }
 
-
-// Visuals
-function setupTiltEffect(element) {
-  element.addEventListener('mousemove', (e) => {
-    if (!settings.enable3D) return;
-    const rect = element.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    
-    const rotateX = ((y - centerY) / centerY) * -10;
-    const rotateY = ((x - centerX) / centerX) * 10;
-    
-    element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-  });
-  
-  element.addEventListener('mouseleave', () => {
-    element.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
-  });
-}
-
-function generateStars() {
-  const createStars = (count) => {
-    let value = `${Math.random() * 2000}px ${Math.random() * 2000}px #FFF`;
-    for(let i = 2; i <= count; i++) {
-      value += `, ${Math.random() * 2000}px ${Math.random() * 2000}px #FFF`;
-    }
-    return value;
-  };
-  
-  const style = document.createElement('style');
-  style.id = 'star-styles';
-  style.innerHTML = `
-    #stars { width: 1px; height: 1px; background: transparent; box-shadow: ${createStars(700)}; animation: animStar 50s linear infinite; }
-    #stars::after { content: " "; position: absolute; top: 2000px; width: 1px; height: 1px; background: transparent; box-shadow: ${createStars(700)}; }
-    #stars2 { width: 2px; height: 2px; background: transparent; box-shadow: ${createStars(200)}; animation: animStar 100s linear infinite; }
-    #stars3 { width: 3px; height: 3px; background: transparent; box-shadow: ${createStars(100)}; animation: animStar 150s linear infinite; }
-  `;
-  document.head.appendChild(style);
-}
-
-function applySettings() {
-  if (settings.enableStars) {
-    starContainers.forEach(c => c.style.display = 'block');
-  } else {
-    starContainers.forEach(c => c.style.display = 'none');
-  }
-}
-
-// Helpers
 function populateTimezones() {
   const commonZones = [
     'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
@@ -311,14 +193,12 @@ function populateTimezones() {
     'Africa/Lagos', 'Africa/Johannesburg', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok',
     'Asia/Singapore', 'Asia/Shanghai', 'Asia/Tokyo', 'Australia/Sydney', 'Pacific/Auckland'
   ];
-  
   let allZones = commonZones;
   try { allZones = Intl.supportedValuesOf('timeZone'); } catch (e) {}
 
   personTimezoneSelect.innerHTML = allZones
     .map(tz => `<option value="${tz}">${tz.replace(/_/g, ' ')}</option>`)
     .join('');
-    
   personTimezoneSelect.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 

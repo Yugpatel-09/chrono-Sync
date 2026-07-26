@@ -1,50 +1,45 @@
-# 🕰️ ChronoSync - Frictionless Global Timezones
+# ChronoSync 🌀
 
-![ChronoSync Preview](https://via.placeholder.com/1200x600/12101F/FADB5F?text=ChronoSync+-+Frictionless+Timezones)
+yo! this is ChronoSync. I built this for the Stardance Hackathon because timezones are literally the worst part of the internet and i was tired of googling "what time is 3pm est in tokyo".
 
-ChronoSync is a beautiful, visual timezone coordinator built for the **Stardance Hackathon** "Frictionless" mission. It completely eliminates the mental math of scheduling global meetings, hackathon sessions, or gaming lobbies by providing a tactile, visual master clock.
+it's basically a big slider that controls time for everyone on your team at once. no math, no accounts, just pure vibes.
 
-## 🚀 The Problem Solved
-The internet has made the world smaller, but coordinating across timezones remains a massive, daily annoyance. Trying to schedule a meeting requires constantly asking, "If it's 3 PM for me, what time is it in Tokyo? Is London asleep?"
+## How it works
 
-ChronoSync removes this friction entirely. Instead of using clunky timezone converter websites that require you to manually type in times, ChronoSync gives you a "Master Clock" slider.
+it's super simple:
+1. drag the master clock slider
+2. see what time it is for everyone else instantly
+3. copy the link and send it to your team (it saves your team in the URL!)
 
-## ✨ 3 Major Quality-of-Life (QoL) Improvements
-1. **The Visual Master Clock**: Simply drag the master slider to scrub through time. It instantly syncs everyone's local time, allowing you to find the perfect overlap in seconds. No mental math required.
-2. **Smart Day/Night Indicators**: The UI dynamically color-codes team members based on their local time. It glows warmly during their day, dims in the evening, and turns deep purple when they are asleep—instantly warning you if you're scheduling a meeting at 3 AM for a teammate.
-3. **Frictionless URL State Sharing**: There are no annoying login screens. When you add your team, the entire state is encoded securely into the URL. Click "Share Session", paste the link to your team, and they see your exact dashboard instantly without needing an account.
+### fun features i added:
+- **Time Travel**: smash the "🌀 Time Travel" button if you can't decide when to meet and want the app to violently pick a random time for you.
+- **Auto-Emojis**: if you add a person without an emoji, the app assigns them a random cool one because everything is better with emojis.
+- **Day/Night Colors**: the cards change color depending on if it's day, evening, or night for that person so you don't accidentally schedule a call at 3am.
 
-## 🛠️ Tech Stack
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3.
-- **Build Tool**: Vite (for lightning-fast HMR and bundling).
-- **Design System**: Custom CSS Glassmorphism, CSS 3D Transforms, and a Stardance-inspired premium space theme.
-- **Time Logic**: Native `Intl.DateTimeFormat` API for accurate, zero-dependency timezone calculations.
+## Tech stack
 
-## 💻 How to Run Locally
+i wanted to keep this super raw and fast, so there are NO frameworks.
+- Vanilla HTML/JS
+- Custom neo-brutalist CSS (thick borders, loud colors)
+- Vite for dev server
+- `Intl.DateTimeFormat` for the native timezone math (so it doesn't break)
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Yugpatel-09/chrono-Sync.git
-   cd chrono-Sync
-   ```
+## How to run it
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+if you wanna mess around with it locally:
 
-3. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+```bash
+# clone it
+git clone https://github.com/Yugpatel-09/chrono-Sync.git
+cd chrono-Sync
 
-4. **Open in browser**
-   Navigate to `http://localhost:5173/`
+# install the thing
+npm install
 
-## 🎨 Design Decisions
-- **Typography**: Uses `Playfair Display` for elegant, italicized headers, perfectly contrasting with modern sans-serifs like `Outfit` and `Space Grotesk`.
-- **Interactions**: Subtle 3D tilt effects on cards when hovering, smooth state transitions, and a dynamic starfield background.
-- **Accessibility**: A functional Settings page allows users to toggle 24-hour time formats and disable 3D CSS effects for better performance on low-end devices.
+# run it
+npm run dev
+```
 
----
-*Built with ❤️ for the Stardance "Frictionless" Hackathon.*
+then go to `http://localhost:5173/`
+
+stay frosty 🥶
