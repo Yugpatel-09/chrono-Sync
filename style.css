@@ -263,7 +263,6 @@ input[type=range]:active::-webkit-slider-thumb {
   box-shadow: 12px 12px 0 black;
 }
 
-/* Different colors based on time of day */
 .person-card.status-day { background: var(--accent-yellow); }
 .person-card.status-evening { background: var(--accent-blue); color: #fff;}
 .person-card.status-evening .person-time-diff { color: black;}
