@@ -1,8 +1,9 @@
-// State
+// App state - keeping track of the team and time settings
 let team = [];
 let globalBaseTime = new Date();
 globalBaseTime.setHours(0, 0, 0, 0);
 
+// Default team members to show when someone first loads the page
 const DEFAULT_TEAM = [
   { id: '1', name: 'You (Local) 🤓', tz: Intl.DateTimeFormat().resolvedOptions().timeZone },
   { id: '2', name: 'Tokyo 🍣', tz: 'Asia/Tokyo' },
@@ -13,7 +14,7 @@ let settings = {
   use24hr: false
 };
 
-// DOM Elements
+// Grab all the DOM elements we need
 const globalSlider = document.getElementById('global-slider');
 const globalTimeDisplay = document.getElementById('global-time-display');
 const teamGrid = document.getElementById('team-grid');
@@ -29,13 +30,15 @@ const navItems = document.querySelectorAll('.nav-item');
 const viewSections = document.querySelectorAll('.view-section');
 const setting24hr = document.getElementById('setting-24hr');
 
+// Fun emojis to randomly assign to new team members
 const EMOJIS = ['🚀', '👽', '🍕', '🤠', '👻', '🤖', '👾', '🔥', '✨', '🦦'];
 
-// Initialize App
+// Get everything set up when the page loads
 function init() {
   populateTimezones();
   loadStateFromURL();
   
+  // Set the slider to current time so it's not stuck at midnight
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   globalSlider.value = currentMinutes;
@@ -48,19 +51,22 @@ function getRandomEmoji() {
   return EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
 }
 
-// Core Render Loop
+// Main render function - updates the UI based on current state
 function render() {
   const selectedMinutes = parseInt(globalSlider.value, 10);
   const selectedTime = new Date(globalBaseTime.getTime() + selectedMinutes * 60000);
   
+  // Update the big time display at the top
   globalTimeDisplay.textContent = formatTime(selectedTime, Intl.DateTimeFormat().resolvedOptions().timeZone).timeStr;
 
+  // Clear out the old cards and rebuild them
   teamGrid.innerHTML = '';
   team.forEach((person) => {
     const card = document.createElement('div');
     const { timeStr, ampm, hour24, offsetStr } = formatTime(selectedTime, person.tz);
     
-    // Assign Day/Evening/Night classes
+    // Figure out what color the card should be based on time of day
+    // 8am-6pm = day (yellow), 6pm-11pm = evening (blue), otherwise night (gray)
     let statusClass = 'status-night';
     if (hour24 >= 8 && hour24 < 18) statusClass = 'status-day';
     else if (hour24 >= 18 && hour24 < 23) statusClass = 'status-evening';
@@ -85,10 +91,11 @@ function render() {
     teamGrid.appendChild(card);
   });
 
+  // Save the current state to the URL so people can share it
   updateURLState();
 }
 
-// Time Formatting logic
+// Handle all the timezone formatting complexity
 function formatTime(date, timeZone) {
   try {
     const options = { timeZone, hour: 'numeric', minute: '2-digit', hour12: !settings.use24hr };
@@ -99,28 +106,34 @@ function formatTime(date, timeZone) {
     let minute = parts.find(p => p.type === 'minute').value;
     let ampm = parts.find(p => p.type === 'dayPeriod')?.value || '';
     
+    // Need 24-hour format for the color coding logic
     const options24 = { timeZone, hour: 'numeric', hour12: false };
     const hour24 = parseInt(new Intl.DateTimeFormat('en-US', options24).format(date), 10);
 
+    // Get the timezone offset string (like GMT+5, GMT-8, etc)
     const localFormatter = new Intl.DateTimeFormat('en-US', { timeZoneName: 'shortOffset', timeZone });
     const localParts = localFormatter.formatToParts(new Date());
     const offsetStr = localParts.find(p => p.type === 'timeZoneName')?.value || '';
 
     return { timeStr: `${hour}:${minute}`, ampm, hour24, offsetStr };
   } catch (e) {
+    // Fallback if something goes wrong with the timezone
     return { timeStr: '--:--', ampm: '', hour24: 12, offsetStr: '' };
   }
 }
 
-// Global action for HTML onclick
+// Need this to be global so the onclick in the HTML works
 window.removePerson = function(id) {
   team = team.filter(p => p.id !== id);
   render();
 };
 
+// Set up all the event listeners
 function setupEventListeners() {
+  // Update time display when slider moves
   globalSlider.addEventListener('input', render);
   
+  // Open the add person modal
   document.querySelectorAll('.open-add-modal').forEach(btn => {
     btn.addEventListener('click', () => {
       addModal.classList.remove('hidden');
@@ -128,14 +141,16 @@ function setupEventListeners() {
     });
   });
   
+  // Close the modal
   closeModalBtn.addEventListener('click', () => {
     addModal.classList.add('hidden');
   });
   
+  // Save the new person
   savePersonBtn.addEventListener('click', () => {
     let name = personNameInput.value.trim() || 'Hacker';
+    // Check if they included an emoji, if not add a random one
     if (![...name].some(char => char.length > 1)) {
-        // Add random emoji if they didn't include one
         name += ' ' + getRandomEmoji();
     }
     const tz = personTimezoneSelect.value;
@@ -145,7 +160,7 @@ function setupEventListeners() {
     render();
   });
 
-  // Chaos Mode / Time Travel Feature
+  // The chaos button - randomly jumps the slider around for fun
   if (chaosBtn) {
     chaosBtn.addEventListener('click', () => {
       let loops = 0;
@@ -158,6 +173,7 @@ function setupEventListeners() {
     });
   }
 
+  // Copy the current URL to clipboard
   document.querySelectorAll('.share-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       navigator.clipboard.writeText(window.location.href).then(() => {
@@ -167,6 +183,7 @@ function setupEventListeners() {
     });
   });
 
+  // Handle navigation between Dashboard and Settings
   navItems.forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
@@ -180,12 +197,14 @@ function setupEventListeners() {
     });
   });
 
+  // Toggle 24-hour time format
   setting24hr.addEventListener('change', (e) => {
     settings.use24hr = e.target.checked;
     render();
   });
 }
 
+// Fill the timezone dropdown with all available timezones
 function populateTimezones() {
   const commonZones = [
     'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
@@ -194,6 +213,7 @@ function populateTimezones() {
     'Asia/Singapore', 'Asia/Shanghai', 'Asia/Tokyo', 'Australia/Sydney', 'Pacific/Auckland'
   ];
   let allZones = commonZones;
+  // Try to get all supported timezones from the browser, fall back to common ones if not supported
   try { allZones = Intl.supportedValuesOf('timeZone'); } catch (e) {}
 
   personTimezoneSelect.innerHTML = allZones
@@ -202,6 +222,7 @@ function populateTimezones() {
   personTimezoneSelect.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
+// Load team state from URL if someone shared a link
 function loadStateFromURL() {
   const urlParams = new URLSearchParams(window.location.search);
   const stateQuery = urlParams.get('state');
@@ -217,6 +238,7 @@ function loadStateFromURL() {
   team = [...DEFAULT_TEAM];
 }
 
+// Save current team state to URL
 function updateURLState() {
   try {
     const encoded = btoa(JSON.stringify(team));
@@ -225,4 +247,5 @@ function updateURLState() {
   } catch(e) {}
 }
 
+// Fire it up
 init();
