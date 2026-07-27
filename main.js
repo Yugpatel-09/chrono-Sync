@@ -58,8 +58,6 @@ function render() {
     const card = document.createElement('div');
     const { timeStr, ampm, hour24, offsetStr } = formatTime(selectedTime, person.tz);
     
-    // Figure out what color the card should be based on time of day
-    // 8am-6pm = day (yellow), 6pm-11pm = evening (blue), otherwise night (gray)
     let statusClass = 'status-night';
     if (hour24 >= 8 && hour24 < 18) statusClass = 'status-day';
     else if (hour24 >= 18 && hour24 < 23) statusClass = 'status-evening';
@@ -84,11 +82,9 @@ function render() {
     teamGrid.appendChild(card);
   });
 
-  // Save the current state to the URL so people can share it
   updateURLState();
 }
 
-// Handle all the timezone formatting complexity
 function formatTime(date, timeZone) {
   try {
     const options = { timeZone, hour: 'numeric', minute: '2-digit', hour12: !settings.use24hr };
@@ -110,23 +106,18 @@ function formatTime(date, timeZone) {
 
     return { timeStr: `${hour}:${minute}`, ampm, hour24, offsetStr };
   } catch (e) {
-    // Fallback if something goes wrong with the timezone
     return { timeStr: '--:--', ampm: '', hour24: 12, offsetStr: '' };
   }
 }
 
-// Need this to be global so the onclick in the HTML works
 window.removePerson = function(id) {
   team = team.filter(p => p.id !== id);
   render();
 };
 
-// Set up all the event listeners
 function setupEventListeners() {
-  // Update time display when slider moves
   globalSlider.addEventListener('input', render);
   
-  // Open the add person modal
   document.querySelectorAll('.open-add-modal').forEach(btn => {
     btn.addEventListener('click', () => {
       addModal.classList.remove('hidden');
@@ -134,15 +125,12 @@ function setupEventListeners() {
     });
   });
   
-  // Close the modal
   closeModalBtn.addEventListener('click', () => {
     addModal.classList.add('hidden');
   });
   
-  // Save the new person
   savePersonBtn.addEventListener('click', () => {
     let name = personNameInput.value.trim() || 'Hacker';
-    // Check if they included an emoji, if not add a random one
     if (![...name].some(char => char.length > 1)) {
         name += ' ' + getRandomEmoji();
     }
@@ -153,7 +141,6 @@ function setupEventListeners() {
     render();
   });
 
-  // The chaos button - randomly jumps the slider around for fun
   if (chaosBtn) {
     chaosBtn.addEventListener('click', () => {
       let loops = 0;
@@ -166,7 +153,6 @@ function setupEventListeners() {
     });
   }
 
-  // Copy the current URL to clipboard
   document.querySelectorAll('.share-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       navigator.clipboard.writeText(window.location.href).then(() => {
@@ -176,7 +162,6 @@ function setupEventListeners() {
     });
   });
 
-  // Handle navigation between Dashboard and Settings
   navItems.forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
@@ -190,14 +175,12 @@ function setupEventListeners() {
     });
   });
 
-  // Toggle 24-hour time format
   setting24hr.addEventListener('change', (e) => {
     settings.use24hr = e.target.checked;
     render();
   });
 }
 
-// Fill the timezone dropdown with all available timezones
 function populateTimezones() {
   const commonZones = [
     'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
@@ -215,7 +198,6 @@ function populateTimezones() {
   personTimezoneSelect.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
-// Load team state from URL if someone shared a link
 function loadStateFromURL() {
   const urlParams = new URLSearchParams(window.location.search);
   const stateQuery = urlParams.get('state');
@@ -231,7 +213,6 @@ function loadStateFromURL() {
   team = [...DEFAULT_TEAM];
 }
 
-// Save current team state to URL
 function updateURLState() {
   try {
     const encoded = btoa(JSON.stringify(team));
