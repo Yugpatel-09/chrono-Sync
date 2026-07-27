@@ -1,9 +1,9 @@
-// App state - keeping track of the team and time settings
+
 let team = [];
 let globalBaseTime = new Date();
 globalBaseTime.setHours(0, 0, 0, 0);
 
-// Default team members to show when someone first loads the page
+
 const DEFAULT_TEAM = [
   { id: '1', name: 'You (Local) 🤓', tz: Intl.DateTimeFormat().resolvedOptions().timeZone },
   { id: '2', name: 'Tokyo 🍣', tz: 'Asia/Tokyo' },
@@ -14,7 +14,6 @@ let settings = {
   use24hr: false
 };
 
-// Grab all the DOM elements we need
 const globalSlider = document.getElementById('global-slider');
 const globalTimeDisplay = document.getElementById('global-time-display');
 const teamGrid = document.getElementById('team-grid');
@@ -30,15 +29,12 @@ const navItems = document.querySelectorAll('.nav-item');
 const viewSections = document.querySelectorAll('.view-section');
 const setting24hr = document.getElementById('setting-24hr');
 
-// Fun emojis to randomly assign to new team members
 const EMOJIS = ['🚀', '👽', '🍕', '🤠', '👻', '🤖', '👾', '🔥', '✨', '🦦'];
 
-// Get everything set up when the page loads
 function init() {
   populateTimezones();
   loadStateFromURL();
   
-  // Set the slider to current time so it's not stuck at midnight
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   globalSlider.value = currentMinutes;
@@ -51,15 +47,12 @@ function getRandomEmoji() {
   return EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
 }
 
-// Main render function - updates the UI based on current state
 function render() {
   const selectedMinutes = parseInt(globalSlider.value, 10);
   const selectedTime = new Date(globalBaseTime.getTime() + selectedMinutes * 60000);
   
-  // Update the big time display at the top
   globalTimeDisplay.textContent = formatTime(selectedTime, Intl.DateTimeFormat().resolvedOptions().timeZone).timeStr;
 
-  // Clear out the old cards and rebuild them
   teamGrid.innerHTML = '';
   team.forEach((person) => {
     const card = document.createElement('div');
